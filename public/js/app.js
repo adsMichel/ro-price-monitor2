@@ -172,9 +172,51 @@ function renderTable(stores) {
     `;
 }
 
+// ─── Interval manager ──────────────────────────────────────
+
+const INTERVAL_OPTIONS = [5, 15, 30, 60]; // minutes
+let _monitorTimer = null;
+
+function getIntervalMinutes() {
+    const settings = JSON.parse(localStorage.getItem("ro_settings") || "{}");
+    const saved = settings.monitorInterval;
+    return INTERVAL_OPTIONS.includes(saved) ? saved : 30;
+}
+
+function saveIntervalMinutes(minutes) {
+    const settings = JSON.parse(localStorage.getItem("ro_settings") || "{}");
+    settings.monitorInterval = minutes;
+    localStorage.setItem("ro_settings", JSON.stringify(settings));
+}
+
+function startMonitorInterval(minutes) {
+    if (_monitorTimer) clearInterval(_monitorTimer);
+    _monitorTimer = setInterval(monitorFavorites, minutes * 60 * 1000);
+}
+
+function initIntervalSelector() {
+    const current = getIntervalMinutes();
+
+    document.querySelectorAll(".interval-btn").forEach(btn => {
+        const minutes = Number(btn.dataset.minutes);
+
+        // Reflect saved preference on load
+        btn.classList.toggle("active", minutes === current);
+
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".interval-btn")
+                .forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            saveIntervalMinutes(minutes);
+            startMonitorInterval(minutes);
+        });
+    });
+
+    startMonitorInterval(current);
+}
+
 // ─── Init ──────────────────────────────────────────────────
 
 renderFavorites(search);
 renderRecents(search);
-
-setInterval(monitorFavorites, 15 * 60 * 1000);
+initIntervalSelector();
