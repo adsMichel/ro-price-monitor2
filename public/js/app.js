@@ -132,7 +132,7 @@ function renderTable(stores) {
     }
 
     body.innerHTML = `
-        <table class="results-table">
+        <div class="table-scroll"><table class="results-table">
             <thead>
                 <tr>
                     <th></th>
@@ -168,7 +168,7 @@ function renderTable(stores) {
                     </tr>
                 `).join("")}
             </tbody>
-        </table>
+        </table></div>
     `;
 }
 

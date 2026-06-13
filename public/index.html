@@ -83,7 +83,6 @@
       border: 1.5px solid var(--gold-dim);
       background: var(--bg-raised);
       margin-bottom: 1rem;
-      position: relative;
     }
 
     .header-emblem svg {
@@ -93,7 +92,7 @@
 
     .header h1 {
       font-family: var(--font-display);
-      font-size: clamp(1.6rem, 5vw, 2.4rem);
+      font-size: clamp(1.4rem, 5vw, 2.4rem);
       font-weight: 700;
       letter-spacing: 0.06em;
       color: var(--gold-light);
@@ -103,8 +102,8 @@
 
     .header-subtitle {
       margin-top: 0.4rem;
-      font-size: 13px;
-      letter-spacing: 0.18em;
+      font-size: clamp(10px, 2.5vw, 13px);
+      letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--parchment-dim);
     }
@@ -132,7 +131,7 @@
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
-      padding: 1.5rem;
+      padding: 1.25rem;
       margin-bottom: 1.25rem;
     }
 
@@ -148,11 +147,12 @@
 
     .search-row {
       display: flex;
-      gap: 10px;
+      gap: 8px;
     }
 
     .search-row input {
       flex: 1;
+      min-width: 0; /* prevent overflow */
       background: var(--bg-deep);
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
@@ -166,9 +166,11 @@
     .search-row input::placeholder { color: var(--parchment-dim); }
     .search-row input:focus { border-color: var(--gold); }
 
+    /* ── Buttons ─────────────────────────────────────────── */
     .btn {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 6px;
       padding: 0.65rem 1.25rem;
       border-radius: var(--radius-md);
@@ -179,8 +181,12 @@
       border: none;
       transition: opacity 0.15s, transform 0.1s;
       white-space: nowrap;
+      flex-shrink: 0;
     }
     .btn:active { transform: scale(0.97); }
+
+    /* Label hidden on small screens, icon always visible */
+    .btn .btn-label { display: inline; }
 
     .btn-primary {
       background: var(--gold);
@@ -205,7 +211,7 @@
     /* ── Monitor Actions ─────────────────────────────────── */
     .monitor-actions {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       margin-bottom: 1.5rem;
       flex-wrap: wrap;
       align-items: center;
@@ -215,12 +221,13 @@
     .interval-selector {
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 2px;
       margin-left: auto;
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
       padding: 4px 6px;
+      flex-shrink: 0;
     }
 
     .interval-label {
@@ -240,7 +247,7 @@
       font-family: var(--font-ui);
       font-size: 12px;
       font-weight: 500;
-      padding: 3px 10px;
+      padding: 3px 8px;
       cursor: pointer;
       transition: all 0.15s;
       white-space: nowrap;
@@ -271,16 +278,18 @@
       padding: 0.85rem 1.25rem;
       border-bottom: 1px solid var(--border);
       background: var(--bg-raised);
+      flex-wrap: wrap;
     }
 
     .panel-icon {
       width: 28px; height: 28px;
       border-radius: var(--radius-sm);
       display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
     }
-    .panel-icon.gold { background: rgba(200,150,12,0.15); color: var(--gold); }
+    .panel-icon.gold   { background: rgba(200,150,12,0.15); color: var(--gold); }
     .panel-icon.purple { background: rgba(139,47,201,0.15); color: var(--purple-light); }
-    .panel-icon.ice { background: rgba(74,158,222,0.15); color: var(--ice); }
+    .panel-icon.ice    { background: rgba(74,158,222,0.15);  color: var(--ice); }
 
     .panel-title {
       font-family: var(--font-display);
@@ -294,7 +303,7 @@
       padding: 1rem 1.25rem;
     }
 
-    /* ── Favorites & Recents: pill chips ─────────────────── */
+    /* ── Chips ───────────────────────────────────────────── */
     .chip-list {
       display: flex;
       flex-wrap: wrap;
@@ -314,22 +323,16 @@
       cursor: pointer;
       transition: border-color 0.15s, color 0.15s;
     }
-    .chip:hover {
-      border-color: var(--gold-dim);
-      color: var(--parchment);
-    }
-    .chip .chip-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-    }
+    .chip:hover { border-color: var(--gold-dim); color: var(--parchment); }
+    .chip .chip-dot { width: 6px; height: 6px; border-radius: 50%; }
     .chip .chip-dot.up   { background: var(--green); }
     .chip .chip-dot.down { background: var(--red); }
     .chip .chip-dot.flat { background: var(--parchment-dim); }
 
-    /* ── Stats Row ───────────────────────────────────────── */
+    /* ── Stats Grid ──────────────────────────────────────── */
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
       gap: 10px;
     }
 
@@ -353,6 +356,7 @@
       font-size: 20px;
       color: var(--gold-light);
       font-weight: 600;
+      word-break: break-all;
     }
 
     .stat-value.purple { color: var(--purple-light); }
@@ -360,8 +364,15 @@
     .stat-value.green  { color: var(--green); }
 
     /* ── Results Table ───────────────────────────────────── */
+    /* Wrapper enables horizontal scroll on narrow screens */
+    .table-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
     .results-table {
       width: 100%;
+      min-width: 480px; /* start scrolling below this */
       border-collapse: collapse;
       font-size: 14px;
     }
@@ -375,6 +386,7 @@
       padding: 0.5rem 0.75rem;
       text-align: left;
       border-bottom: 1px solid var(--border);
+      white-space: nowrap;
     }
 
     .results-table td {
@@ -384,15 +396,13 @@
     }
 
     .results-table tr:last-child td { border-bottom: none; }
-
-    .results-table tr:hover td {
-      background: rgba(200,150,12,0.04);
-    }
+    .results-table tr:hover td { background: rgba(200,150,12,0.04); }
 
     .price-tag {
       font-family: var(--font-display);
       font-weight: 600;
       color: var(--gold-light);
+      white-space: nowrap;
     }
 
     .badge {
@@ -402,8 +412,8 @@
       border-radius: 4px;
       font-weight: 500;
     }
-    .badge-up   { background: rgba(58,170,96,0.15);  color: var(--green); }
-    .badge-down { background: rgba(200,64,64,0.15);  color: var(--red); }
+    .badge-up   { background: rgba(58,170,96,0.15);   color: var(--green); }
+    .badge-down { background: rgba(200,64,64,0.15);   color: var(--red); }
     .badge-flat { background: rgba(154,139,106,0.15); color: var(--parchment-dim); }
 
     /* ── Footer ──────────────────────────────────────────── */
@@ -424,6 +434,77 @@
       color: var(--parchment-dim);
       font-size: 13px;
     }
+
+    /* ════════════════════════════════════════════════════════
+       RESPONSIVE — ≤ 600px
+    ════════════════════════════════════════════════════════ */
+    @media (max-width: 600px) {
+      .container {
+        padding: 1.25rem 1rem 3rem;
+      }
+
+      /* Header: tighten vertical spacing */
+      .header {
+        padding: 1.75rem 0 1.25rem;
+      }
+      .header-emblem {
+        width: 44px; height: 44px;
+        margin-bottom: 0.75rem;
+      }
+      .header-emblem svg { width: 22px; height: 22px; }
+
+      /* Hide subtitle on very small screens */
+      .header-subtitle { display: none; }
+
+      /* Search: stack on tiny screens */
+      .search-section { padding: 1rem; }
+
+      /* Action buttons: icon-only, show label via tooltip attr */
+      .btn .btn-label { display: none; }
+      .btn {
+        padding: 0.6rem 0.75rem;
+      }
+
+      /* Monitor actions: two rows naturally via wrap,
+         interval selector takes full width on its own row */
+      .monitor-actions {
+        gap: 6px;
+      }
+      .interval-selector {
+        margin-left: 0;
+        width: 100%;
+        justify-content: space-between;
+      }
+      .interval-label { flex: 1; }
+      .interval-btn   { flex: 1; text-align: center; }
+
+      /* Panels */
+      .panel-body { padding: 0.75rem 1rem; }
+      .panel-header { padding: 0.7rem 1rem; }
+
+      /* Stats: 2 cols on mobile */
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .stat-value { font-size: 16px; }
+
+      /* Chips slightly smaller */
+      .chip { font-size: 12px; padding: 3px 10px; }
+
+      /* Table: handled by .table-scroll wrapper */
+      .results-table { font-size: 13px; }
+      .results-table th,
+      .results-table td { padding: 0.5rem 0.6rem; }
+    }
+
+    /* ════════════════════════════════════════════════════════
+       RESPONSIVE — ≤ 380px (very small phones)
+    ════════════════════════════════════════════════════════ */
+    @media (max-width: 380px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .stat-value { font-size: 14px; }
+      .interval-btn { padding: 3px 4px; font-size: 11px; }
+    }
   </style>
 </head>
 <body>
@@ -433,7 +514,6 @@
   <!-- Header -->
   <header class="header">
     <div class="header-emblem" aria-hidden="true">
-      <!-- Zeny coin SVG -->
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/>
         <text x="12" y="16.5" text-anchor="middle" font-size="11" font-family="serif" fill="currentColor" font-weight="bold">z</text>
@@ -448,26 +528,28 @@
     <span class="search-label">Buscar Item</span>
     <div class="search-row">
       <input id="itemName" type="text" placeholder="Ex: Carta de Poring, Yggdrasil Berry…">
-      <button id="searchBtn" class="btn btn-primary">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        Pesquisar
+      <button id="searchBtn" class="btn btn-primary" title="Pesquisar">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <span class="btn-label">Pesquisar</span>
       </button>
     </div>
   </section>
 
   <!-- Monitor Actions -->
   <div class="monitor-actions">
-    <button id="monitorNowBtn" class="btn btn-monitor">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
-      Monitorar Agora
+    <button id="monitorNowBtn" class="btn btn-monitor" title="Monitorar Agora">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+      <span class="btn-label">Monitorar Agora</span>
     </button>
-    <button class="btn btn-secondary">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
-      Alertas de Preço
+
+    <button class="btn btn-secondary" title="Alertas de Preço">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+      <span class="btn-label">Alertas de Preço</span>
     </button>
-    <button class="btn btn-secondary">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      Histórico
+
+    <button class="btn btn-secondary" title="Histórico">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span class="btn-label">Histórico</span>
     </button>
 
     <!-- Interval Selector -->
