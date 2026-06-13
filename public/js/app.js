@@ -34,10 +34,17 @@ function formatZeny(value) {
 
 btn.addEventListener(
     "click",
-    search
+    () => search()
 );
 
 async function search(itemFromFavorite = null) {
+
+    if (
+        itemFromFavorite &&
+        typeof itemFromFavorite !== "string"
+    ) {
+        itemFromFavorite = null;
+    }
 
     const item =
         itemFromFavorite ||
