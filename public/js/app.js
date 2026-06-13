@@ -17,6 +17,11 @@ import {
 }
     from "./dashboard.js";
 
+import {
+    monitorFavorites
+}
+from "./monitor.js";
+
 const btn =
     document.getElementById("searchBtn");
 
@@ -25,6 +30,19 @@ const stats =
 
 const results =
     document.getElementById("results");
+
+const monitorBtn =
+    document.getElementById(
+        "monitorNowBtn"
+    );
+
+if (
+    Notification.permission
+    !== "granted"
+) {
+
+    Notification.requestPermission();
+}
 
 function formatZeny(value) {
 
@@ -35,6 +53,11 @@ function formatZeny(value) {
 btn.addEventListener(
     "click",
     () => search()
+);
+
+monitorBtn.addEventListener(
+    "click",
+    monitorFavorites
 );
 
 async function search(itemFromFavorite = null) {
@@ -162,3 +185,8 @@ function renderTable(stores) {
 
 renderFavorites(search);
 renderRecents(search);
+
+setInterval(
+    monitorFavorites,
+    5 * 60 * 1000
+);

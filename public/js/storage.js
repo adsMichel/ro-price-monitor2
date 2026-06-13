@@ -1,6 +1,7 @@
 const FAVORITES_KEY = "ro_favorites";
 const RECENTS_KEY = "ro_recents";
 const HISTORY_KEY = "ro_history";
+const SETTINGS_KEY = "ro_settings";
 
 export function getFavorites() {
     return JSON.parse(
@@ -98,4 +99,20 @@ export function getHistory(itemName) {
         );
 
     return history[itemName] || [];
+}
+
+export function getSettings() {
+
+    return JSON.parse(
+        localStorage.getItem(SETTINGS_KEY)
+        || "{}"
+    );
+}
+
+export function saveSettings(settings) {
+
+    localStorage.setItem(
+        SETTINGS_KEY,
+        JSON.stringify(settings)
+    );
 }
