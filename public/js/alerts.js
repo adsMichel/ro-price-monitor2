@@ -75,8 +75,40 @@ function _renderModal(favorites) {
 
     if (favorites.length > 0) {
         _renderRows(favorites, alerts);
+        _attachMaskListeners();
         document.getElementById("ro-alerts-save").addEventListener("click", () => _save(favorites));
     }
+}
+
+// ─── Thousand-separator mask ─────────────────────────────────
+
+function _applyMask(input) {
+    // Strip everything except digits
+    const raw = input.value.replace(/\D/g, "");
+    const num = raw ? Number(raw) : "";
+    input.value = num !== "" ? num.toLocaleString("pt-BR") : "";
+    // Store raw number in dataset for easy reading on save
+    input.dataset.raw = raw;
+}
+
+function _attachMaskListeners() {
+    document.querySelectorAll(".ro-alert-threshold").forEach(input => {
+        // Set initial raw value from displayed text
+        input.dataset.raw = input.value.replace(/\D/g, "");
+
+        input.addEventListener("input", () => _applyMask(input));
+
+        // On focus: show raw number for easier editing
+        input.addEventListener("focus", () => {
+            input.value = input.dataset.raw || "";
+        });
+
+        // On blur: reformat
+        input.addEventListener("blur", () => {
+            const num = Number(input.dataset.raw) || "";
+            input.value = num !== "" ? num.toLocaleString("pt-BR") : "";
+        });
+    });
 }
 
 function _renderRows(favorites, alerts) {
@@ -115,15 +147,26 @@ function _renderRows(favorites, alerts) {
 }
 
 function _save(favorites) {
-    const settings = getSettings();
-    const alerts   = settings.alerts || {};
+    const settings    = getSettings();
+    const savedAlerts = settings.alerts || {};
+
+    // Start from what's already saved — never discard existing data
+    const alerts = { ...savedAlerts };
 
     favorites.forEach(item => {
         const toggle    = document.querySelector(`.ro-alert-toggle[data-item="${item}"]`);
         const threshold = document.querySelector(`.ro-alert-threshold[data-item="${item}"]`);
+
+        // If the DOM element doesn't exist for some reason, skip entirely
+        if (!toggle) return;
+
+        const rawValue    = threshold?.dataset.raw ?? "";
+        const parsedValue = rawValue !== "" ? Number(rawValue) : null;
+
         alerts[item] = {
-            enabled:   toggle?.checked   ?? false,
-            threshold: Number(threshold?.value) || 0,
+            enabled: toggle.checked,
+            // Preserve existing threshold if the field was left blank
+            threshold: parsedValue !== null ? parsedValue : (savedAlerts[item]?.threshold ?? 0),
         };
     });
 
