@@ -44,35 +44,35 @@ function setMonitorState(state) {
     const btn = document.getElementById("monitorNowBtn");
     if (!btn) return;
 
+    // Inject spin keyframe once
+    if (!document.getElementById("ro-spin-style")) {
+        const style = document.createElement("style");
+        style.id = "ro-spin-style";
+        style.textContent = `@keyframes ro-spin { to { transform: rotate(360deg); } }`;
+        document.head.appendChild(style);
+    }
+
+    const iconSpin = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+        style="animation: ro-spin 1s linear infinite" aria-hidden="true">
+        <polyline points="1 4 1 10 7 10"/>
+        <path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
+    </svg>`;
+
+    const iconIdle = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="1 4 1 10 7 10"/>
+        <path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
+    </svg>`;
+
     if (state === "loading") {
         btn.disabled = true;
         btn.style.opacity = "0.6";
-        btn.innerHTML = `
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
-                style="animation: ro-spin 1s linear infinite">
-                <polyline points="1 4 1 10 7 10"/>
-                <path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
-            </svg>
-            Monitorando…`;
-
-        // Inject keyframe once
-        if (!document.getElementById("ro-spin-style")) {
-            const style = document.createElement("style");
-            style.id = "ro-spin-style";
-            style.textContent = `@keyframes ro-spin { to { transform: rotate(360deg); } }`;
-            document.head.appendChild(style);
-        }
+        btn.innerHTML = `${iconSpin}<span class="btn-label">Monitorando…</span>`;
     } else {
         btn.disabled = false;
         btn.style.opacity = "";
-        btn.innerHTML = `
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="1 4 1 10 7 10"/>
-                <path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
-            </svg>
-            Monitorar Agora`;
+        btn.innerHTML = `${iconIdle}<span class="btn-label">Monitorar</span>`;
     }
 }
 
