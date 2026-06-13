@@ -101,13 +101,14 @@ function _renderRows(favorites, alerts) {
                 </label>
 
                 <div style="display:flex; align-items:center; gap:4px;">
-                    <input type="number" class="ro-alert-threshold" data-item="${item}"
-                        value="${cfg.threshold || ""}" placeholder="limite z"
-                        min="0" step="100"
+                    <input type="text" inputmode="numeric" class="ro-alert-threshold" data-item="${item}"
+                        value="${cfg.threshold ? cfg.threshold.toLocaleString("pt-BR") : ""}"
+                        placeholder="0"
                         style="width:100%; background:var(--bg-deep);
                             border:1px solid var(--border); border-radius:var(--radius-sm);
                             color:var(--parchment); font-family:var(--font-ui);
-                            font-size:13px; padding:.4rem .6rem; outline:none;">
+                            font-size:13px; padding:.4rem .6rem; outline:none; text-align:right;">
+                    <span style="font-size:12px; color:var(--parchment-dim); white-space:nowrap;">z</span>
                 </div>
             </div>`;
     }).join("");
