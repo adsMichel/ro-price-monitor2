@@ -177,46 +177,8 @@ function renderTable(stores) {
     `;
 }
 
-// ─── Favorites chips ────────────────────────────────────────
-//
-// renderFavorites() and renderRecents() are defined in their own
-// modules; we export `search` so those modules can call it.
-// BUT we also expose chip-rendering helpers here so the modules
-// can delegate markup to this file if they choose to call them.
-
-export function renderFavoritesChips(items) {
-    const list = document.getElementById("favorites-list");
-    if (!items?.length) {
-        list.innerHTML = `<p class="empty-state">Nenhum favorito ainda. Pesquise um item e adicione aos favoritos.</p>`;
-        return;
-    }
-    list.innerHTML = items.map(name => chipHTML(name, "gold")).join("");
-    list.querySelectorAll(".chip").forEach(chip => {
-        chip.addEventListener("click", () => search(chip.dataset.item));
-    });
-}
-
-export function renderRecentsChips(items) {
-    const list = document.getElementById("recents-list");
-    if (!items?.length) {
-        list.innerHTML = `<p class="empty-state">Nenhuma pesquisa recente.</p>`;
-        return;
-    }
-    // Most recent first, cap at 10
-    list.innerHTML = [...items].reverse().slice(0, 10).map(name => chipHTML(name, "dim")).join("");
-    list.querySelectorAll(".chip").forEach(chip => {
-        chip.addEventListener("click", () => search(chip.dataset.item));
-    });
-}
-
-function chipHTML(name, style) {
-    const dotClass = style === "gold" ? "up" : "flat";
-    return `
-        <span class="chip" data-item="${name}" title="Clique para pesquisar">
-            <span class="chip-dot ${dotClass}"></span>
-            ${name}
-        </span>`;
-}
+// Chip rendering is handled by chips.js (imported by favorites.js and dashboard.js)
+// to avoid circular dependencies.
 
 // ─── Init ──────────────────────────────────────────────────
 
