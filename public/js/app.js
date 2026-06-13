@@ -9,9 +9,16 @@ import {
 import { renderFavorites } from "./favorites.js";
 import { renderRecents }   from "./dashboard.js";
 import { monitorFavorites } from "./monitor.js";
+import { openHistory }      from "./history.js";
+import { openAlerts }       from "./alerts.js";
 
 const btn        = document.getElementById("searchBtn");
 const monitorBtn = document.getElementById("monitorNowBtn");
+
+const alertsBtn  = [...document.querySelectorAll(".btn-secondary")]
+                    .find(b => b.textContent.includes("Alertas"));
+const historyBtn = [...document.querySelectorAll(".btn-secondary")]
+                    .find(b => b.textContent.includes("Histórico"));
 
 if (Notification.permission !== "granted") {
     Notification.requestPermission();
@@ -22,8 +29,9 @@ function formatZeny(value) {
 }
 
 btn.addEventListener("click", () => search());
-
 monitorBtn.addEventListener("click", monitorFavorites);
+alertsBtn?.addEventListener("click",  () => openAlerts());
+historyBtn?.addEventListener("click", () => openHistory());
 
 // ─── Search ────────────────────────────────────────────────
 
@@ -62,13 +70,8 @@ function setResultsLoading(item) {
 }
 
 // ─── Stats ─────────────────────────────────────────────────
-//
-// Instead of replacing the entire #stats panel (which would destroy
-// the panel chrome built in index.html), we update the four
-// pre-existing stat-value elements and refresh the favorite button.
 
 function renderStats(data) {
-    // Update the four metric cards
     const el = (id) => document.getElementById(id);
 
     const now = new Date().toLocaleTimeString("pt-BR", {
@@ -78,18 +81,13 @@ function renderStats(data) {
 
     el("stat-monitored").textContent = data.stores?.length ?? "—";
     el("stat-updated").textContent   = now;
+    el("stat-top-up").textContent    = formatZeny(data.stats.min) + " z";
+    el("stat-top-down").textContent  = formatZeny(data.stats.max) + " z";
 
-    // Calculate best gainer / loser from stores for the overview cards
-    // (falls back gracefully if history data isn't available yet)
-    el("stat-top-up").textContent   = formatZeny(data.stats.min) + " z";
-    el("stat-top-down").textContent = formatZeny(data.stats.max) + " z";
-
-    // Re-label those two cards to reflect what they actually show
     const labels = document.querySelectorAll(".stat-label");
     if (labels[2]) labels[2].textContent = "Menor Preço";
     if (labels[3]) labels[3].textContent = "Maior Preço";
 
-    // Inject / refresh the Favorite button inside the results panel header
     renderFavoriteButton(data);
 }
 
@@ -113,7 +111,6 @@ function renderFavoriteButton(data) {
         </svg>
         Favoritar`;
 
-    // Replace to remove any stale listener
     const fresh = favBtn.cloneNode(true);
     header.replaceChild(fresh, favBtn);
     fresh.addEventListener("click", () => {
@@ -123,8 +120,6 @@ function renderFavoriteButton(data) {
 }
 
 // ─── Results table ─────────────────────────────────────────
-//
-// Writes only into #results-body, preserving the panel chrome.
 
 function renderTable(stores) {
     const body = document.getElementById("results-body");
@@ -176,9 +171,6 @@ function renderTable(stores) {
         </table>
     `;
 }
-
-// Chip rendering is handled by chips.js (imported by favorites.js and dashboard.js)
-// to avoid circular dependencies.
 
 // ─── Init ──────────────────────────────────────────────────
 
