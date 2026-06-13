@@ -177,4 +177,4 @@ function renderTable(stores) {
 renderFavorites(search);
 renderRecents(search);
 
-setInterval(monitorFavorites, 1 * 60 * 1000);
+setInterval(monitorFavorites, 15 * 60 * 1000);
