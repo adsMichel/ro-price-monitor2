@@ -6,7 +6,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Parâmetro 'item' obrigatório" });
     }
 
-    const routerPath = `/pt/intro/shop-search/market-price?serverType=FREYA&period=${encodeURIComponent(period)}&searchWord=${encodeURIComponent(item)}`;
+    // Period values: ALL, 30 (1 month), 90 (3 months), 180 (6 months)
+    const url = `https://ro.gnjoylatam.com/pt/intro/shop-search/market-price?serverType=FREYA&period=${encodeURIComponent(period)}&searchWord=${encodeURIComponent(item)}`;
+
+    // State tree uses ALL and the previous path — period is resolved via URL only
+    const prevPath = `/intro/shop-search/market-price?serverType=FREYA&period=ALL&searchWord=${encodeURIComponent(item)}`;
+    const pageKey  = `__PAGE__?{"serverType":"FREYA","period":"ALL","searchWord":"${item}"}`;
 
     const stateTree = encodeURIComponent(JSON.stringify([
       "",
@@ -14,14 +19,12 @@ export default async function handler(req, res) {
         ["locale","pt","d"],
         { children: ["(primary)", { children: ["intro", { children: ["shop-search", { children: [
           ["id","market-price","d"],
-          { children: [`__PAGE__`, {}, routerPath] }
-        , null, null] }, null, null] }, null, null] }, null, null] },
+          { children: [pageKey, {}, prevPath, "refresh"] }
+        , null, null, true] }, null, null, true] }, null, null] }, null, null] },
         null, null
       ]},
       null, null, true
     ]));
-
-    const url = `https://ro.gnjoylatam.com/pt/intro/shop-search/market-price?serverType=FREYA&period=${encodeURIComponent(period)}&searchWord=${encodeURIComponent(item)}`;
 
     const response = await fetch(url, {
       headers: {
