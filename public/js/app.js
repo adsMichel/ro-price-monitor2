@@ -11,14 +11,17 @@ import { renderRecents }   from "./dashboard.js";
 import { monitorFavorites } from "./monitor.js";
 import { openHistory }      from "./history.js";
 import { openAlerts }       from "./alerts.js";
+import { openTrending }     from "./trending.js";
 
 const btn        = document.getElementById("searchBtn");
 const monitorBtn = document.getElementById("monitorNowBtn");
 
 const alertsBtn  = [...document.querySelectorAll(".btn-secondary")]
                     .find(b => b.textContent.includes("Alertas"));
-const historyBtn = [...document.querySelectorAll(".btn-secondary")]
+const historyBtn  = [...document.querySelectorAll(".btn-secondary")]
                     .find(b => b.textContent.includes("Histórico"));
+const trendingBtn = [...document.querySelectorAll(".btn-secondary")]
+                    .find(b => b.textContent.includes("Mais Vendidos"));
 
 if (Notification.permission !== "granted") {
     Notification.requestPermission();
@@ -32,6 +35,7 @@ btn.addEventListener("click", () => search());
 monitorBtn.addEventListener("click", monitorFavorites);
 alertsBtn?.addEventListener("click",  () => openAlerts());
 historyBtn?.addEventListener("click", () => openHistory());
+trendingBtn?.addEventListener("click", () => openTrending());
 
 // ─── Search ────────────────────────────────────────────────
 
