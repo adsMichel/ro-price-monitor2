@@ -43,10 +43,17 @@ export default async function handler(req, res) {
     const text = await response.text();
 
     // ── DEBUG: return raw text to identify field names ────────
-    // Remove this block after confirming the correct field name
     if (req.query.debug === "1") {
-      const snippet = text.substring(0, 3000);
-      return res.json({ debug: true, snippet });
+      // Find any JSON-like keys to identify the data structure
+      const keys = [...text.matchAll(/"([a-zA-Z]+List|list|items|data|price[^"]*|result[^"]*)"\s*:/gi)]
+        .map(m => m[1]);
+      const uniqueKeys = [...new Set(keys)];
+
+      // Also find a 500-char window around any price-looking data
+      const priceIdx = text.search(/"[^"]*[Pp]rice[^"]*"\s*:/);
+      const window   = priceIdx > -1 ? text.substring(Math.max(0, priceIdx - 100), priceIdx + 400) : null;
+
+      return res.json({ debug: true, length: text.length, uniqueKeys, window });
     }
 
     // ── Parse priceList ─────────────────────────────────────
