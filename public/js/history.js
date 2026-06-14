@@ -70,9 +70,9 @@ function _renderModal(items, selectedItem) {
                             font-family:var(--font-ui); font-size:14px;
                             padding:.55rem .9rem; outline:none; cursor:pointer;">
                             <option value="ALL">Todo período</option>
-                            <option value="30">1 Mês</option>
-                            <option value="90">3 Meses</option>
-                            <option value="180">6 Meses</option>
+                            <option value="1">1 Dia</option>
+                            <option value="7">7 Dias</option>
+                            <option value="30">30 Dias</option>
                         </select>
                     </div>
                 </div>
