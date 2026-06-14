@@ -42,14 +42,8 @@ export default async function handler(req, res) {
 
     const text = await response.text();
 
-    // ── DEBUG: return raw text to identify field names ────────
-    // Remove this block after confirming the correct field name
-    if (req.query.debug === "1") {
-      const snippet = text.substring(0, 3000);
-      return res.json({ debug: true, snippet });
-    }
-
     // ── Parse priceList ─────────────────────────────────────
+    // The RSC payload contains a "priceList" key with the historical data
     const listStart = text.indexOf('"priceList":[');
     if (listStart === -1) {
       return res.status(404).json({ error: "priceList não encontrado na resposta" });
