@@ -25,70 +25,72 @@ export default async function handler(req, res) {
 
     const response = await fetch(url, {
       headers: {
-        "accept":                  "*/*",
-        "accept-encoding":         "gzip, deflate, br, zstd",
-        "accept-language":         "pt-BR,pt;q=0.9",
-        "rsc":                     "1",
-        "next-url":                "/pt/intro/shop-search/market-price",
-        "next-router-state-tree":  stateTree,
-        "referer":                 url,
-        "sec-fetch-dest":          "empty",
-        "sec-fetch-mode":          "cors",
-        "sec-fetch-site":          "same-origin",
-        "user-agent":              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0",
-        "cookie":                  process.env.RO_SESSION_COOKIE ?? "",
+        "accept":                 "*/*",
+        "accept-encoding":        "gzip, deflate, br, zstd",
+        "accept-language":        "pt-BR,pt;q=0.9",
+        "rsc":                    "1",
+        "next-url":               "/pt/intro/shop-search/market-price",
+        "next-router-state-tree": stateTree,
+        "referer":                url,
+        "sec-fetch-dest":         "empty",
+        "sec-fetch-mode":         "cors",
+        "sec-fetch-site":         "same-origin",
+        "user-agent":             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0",
+        "cookie":                 process.env.RO_SESSION_COOKIE ?? "",
       },
     });
 
     const text = await response.text();
 
-    // ── Debug: full text ────────────────────────────────────
-    if (req.query.debug === "1") {
-      return res.json({ length: text.length, full: text });
+    // ── Parse "list":[...] from RSC stream ──────────────────
+    // Data lives inside the $L12 component payload:
+    // 10:[...null,{"queryParams":{...},"list":[{...}],"totalCount":N}]
+    const key   = '"list":[';
+    const start = text.indexOf(key);
+
+    if (start === -1) {
+      return res.status(404).json({ error: "Dados não encontrados", length: text.length });
     }
 
-    // ── Parse: scan all JSON-like arrays in RSC stream ──────
-    const fieldCandidates = [
-      "priceList","list","marketPriceList","itemPriceList",
-      "tradeList","data","items","result","prices"
-    ];
+    let depth = 0;
+    const arrayStart = start + key.length - 1;
+    let arrayEnd     = arrayStart;
 
-    for (const field of fieldCandidates) {
-      const key   = `"${field}":[`;
-      const start = text.indexOf(key);
-      if (start === -1) continue;
-
-      let depth = 0;
-      const arrayStart = start + key.length - 1;
-      let arrayEnd     = arrayStart;
-
-      for (let i = arrayStart; i < text.length; i++) {
-        if (text[i] === "[") depth++;
-        else if (text[i] === "]") {
-          depth--;
-          if (depth === 0) { arrayEnd = i + 1; break; }
-        }
+    for (let i = arrayStart; i < text.length; i++) {
+      if (text[i] === "[") depth++;
+      else if (text[i] === "]") {
+        depth--;
+        if (depth === 0) { arrayEnd = i + 1; break; }
       }
-
-      try {
-        const list = JSON.parse(text.substring(arrayStart, arrayEnd));
-        if (!list.length) continue;
-
-        const prices = list.map(x =>
-          Number(x.avgPrice ?? x.itemPrice ?? x.price ?? x.minPrice ?? 0)
-        ).filter(Boolean);
-
-        const stats = prices.length ? {
-          min: Math.min(...prices),
-          max: Math.max(...prices),
-          avg: Math.round(prices.reduce((a, b) => a + b, 0) / prices.length),
-        } : null;
-
-        return res.json({ success: true, item, period, field, count: list.length, stats, priceList: list });
-      } catch (_) { continue; }
     }
 
-    return res.status(404).json({ error: "Dados não encontrados", length: text.length, snippet: text.substring(0, 1000) });
+    const list = JSON.parse(text.substring(arrayStart, arrayEnd));
+
+    if (!list.length) {
+      return res.status(404).json({ error: "Nenhum item encontrado para: " + item });
+    }
+
+    // ── Parse totalCount ────────────────────────────────────
+    const tcMatch    = text.slice(arrayEnd).match(/"totalCount":(\d+)/);
+    const totalCount = tcMatch ? Number(tcMatch[1]) : list.length;
+
+    // ── Normalise fields ────────────────────────────────────
+    // Server returns: minItemPrice, maxItemPrice, avgItemPrice
+    const stats = {
+      min: list[0].minItemPrice,
+      max: list[0].maxItemPrice,
+      avg: list[0].avgItemPrice,
+    };
+
+    return res.json({
+      success:    true,
+      item,
+      period,
+      count:      list.length,
+      totalCount,
+      stats,
+      priceList:  list,
+    });
 
   } catch (err) {
     return res.status(500).json({ error: err.message, stack: err.stack });

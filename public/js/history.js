@@ -247,10 +247,15 @@ async function _renderChartFromServer(itemName, period) {
             return;
         }
 
-        // Normalize server data to same shape as local history
+        // Normalize server fields to local history shape
+        // Server returns: minItemPrice, maxItemPrice, avgItemPrice, itemName, totalItemCnt
         const history = data.priceList.map(x => ({
-            date:  x.date ?? x.referenceDate ?? new Date().toISOString(),
-            price: Number(x.avgPrice ?? x.price ?? 0),
+            date:     x.date ?? x.referenceDate ?? new Date().toISOString(),
+            price:    Number(x.avgItemPrice ?? x.avgPrice ?? x.price ?? 0),
+            min:      Number(x.minItemPrice ?? 0),
+            max:      Number(x.maxItemPrice ?? 0),
+            itemName: x.itemName ?? itemName,
+            totalCnt: x.totalItemCnt ?? null,
         })).filter(h => h.price > 0);
 
         _drawChart(area, history, itemName);
