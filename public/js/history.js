@@ -1,4 +1,5 @@
 import { getHistory, getFavorites, getRecents } from "./storage.js";
+import { fetchMarketPrice } from "./api.js";
 
 // ─── Public API ─────────────────────────────────────────────
 
@@ -50,17 +51,44 @@ function _renderModal(items, selectedItem) {
                 <p style="color:var(--parchment-dim); font-size:14px; text-align:center; padding:2rem 0;">
                     Nenhum histórico disponível. Pesquise itens para começar a registrar preços.
                 </p>` : `
-                <div style="margin-bottom:1rem;">
-                    <label style="font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--gold-dim); display:block; margin-bottom:.5rem;">
-                        Item
-                    </label>
-                    <select id="ro-history-select" style="
-                        width:100%; background:var(--bg-deep);
-                        border:1px solid var(--border); border-radius:var(--radius-md);
-                        color:var(--parchment); font-family:var(--font-ui); font-size:14px;
-                        padding:.55rem .9rem; outline:none; cursor:pointer;">
-                        ${items.map(i => `<option value="${i}" ${i === selectedItem ? "selected" : ""}>${i}</option>`).join("")}
-                    </select>
+                <div style="display:grid; grid-template-columns:1fr auto; gap:10px; margin-bottom:1rem; align-items:end;">
+                    <div>
+                        <label style="font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--gold-dim); display:block; margin-bottom:.5rem;">Item</label>
+                        <select id="ro-history-select" style="
+                            width:100%; background:var(--bg-deep);
+                            border:1px solid var(--border); border-radius:var(--radius-md);
+                            color:var(--parchment); font-family:var(--font-ui); font-size:14px;
+                            padding:.55rem .9rem; outline:none; cursor:pointer;">
+                            ${items.map(i => `<option value="${i}" ${i === selectedItem ? "selected" : ""}>${i}</option>`).join("")}
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--gold-dim); display:block; margin-bottom:.5rem;">Período</label>
+                        <select id="ro-history-period" style="
+                            background:var(--bg-deep); border:1px solid var(--border);
+                            border-radius:var(--radius-md); color:var(--parchment);
+                            font-family:var(--font-ui); font-size:14px;
+                            padding:.55rem .9rem; outline:none; cursor:pointer;">
+                            <option value="ALL">Todo período</option>
+                            <option value="1M">1 Mês</option>
+                            <option value="3M">3 Meses</option>
+                            <option value="6M">6 Meses</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display:flex; gap:8px; margin-bottom:1rem;">
+                    <button class="ro-source-btn active" data-source="server" style="
+                        flex:1; padding:.45rem; border-radius:var(--radius-sm); font-family:var(--font-ui);
+                        font-size:12px; cursor:pointer; border:1px solid rgba(139,47,201,0.4);
+                        background:var(--purple-dim); color:var(--purple-light);">
+                        📡 Dados do Servidor
+                    </button>
+                    <button class="ro-source-btn" data-source="local" style="
+                        flex:1; padding:.45rem; border-radius:var(--radius-sm); font-family:var(--font-ui);
+                        font-size:12px; cursor:pointer; border:1px solid var(--border);
+                        background:var(--bg-raised); color:var(--parchment-dim);">
+                        💾 Histórico Local
+                    </button>
                 </div>
                 <div id="ro-history-chart-area"></div>
             `}
@@ -71,10 +99,41 @@ function _renderModal(items, selectedItem) {
     overlay.addEventListener("click", e => { if (e.target === overlay) _removeModal(); });
     document.getElementById("ro-history-close").addEventListener("click", _removeModal);
 
-    const select = document.getElementById("ro-history-select");
+    const select  = document.getElementById("ro-history-select");
+    const period  = document.getElementById("ro-history-period");
+
+    let currentSource = "server";
+
+    function refresh() {
+        const item = select?.value;
+        const per  = period?.value || "ALL";
+        if (!item) return;
+        if (currentSource === "server") {
+            _renderChartFromServer(item, per);
+        } else {
+            _renderChart(item);
+        }
+    }
+
+    document.querySelectorAll(".ro-source-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".ro-source-btn").forEach(b => {
+                b.style.background    = "var(--bg-raised)";
+                b.style.color         = "var(--parchment-dim)";
+                b.style.borderColor   = "var(--border)";
+            });
+            btn.style.background  = "var(--purple-dim)";
+            btn.style.color       = "var(--purple-light)";
+            btn.style.borderColor = "rgba(139,47,201,0.4)";
+            currentSource = btn.dataset.source;
+            refresh();
+        });
+    });
+
     if (select) {
-        select.addEventListener("change", () => _renderChart(select.value));
-        if (selectedItem) _renderChart(selectedItem);
+        select.addEventListener("change", refresh);
+        period?.addEventListener("change", refresh);
+        if (selectedItem) refresh();
     }
 }
 
@@ -86,7 +145,8 @@ function _renderChart(itemName) {
 
     if (!history.length) {
         area.innerHTML = `<p style="color:var(--parchment-dim); font-size:13px; text-align:center; padding:1.5rem 0;">
-            Sem registros para <strong style="color:var(--parchment)">${itemName}</strong> ainda.</p>`;
+            Sem registros locais para <strong style="color:var(--parchment)">${itemName}</strong>.<br>
+            <span style="font-size:12px;">Pesquise o item para começar a gravar o histórico.</span></p>`;
         return;
     }
 
@@ -169,6 +229,36 @@ function _renderChart(itemName) {
             <span>Máx: <strong style="color:var(--red)">${max.toLocaleString("pt-BR")} z</strong></span>
             <span>Registros: <strong style="color:var(--parchment)">${history.length}</strong></span>
         </div>`;
+}
+
+async function _renderChartFromServer(itemName, period) {
+    const area = document.getElementById("ro-history-chart-area");
+    if (!area) return;
+
+    area.innerHTML = `<p style="color:var(--gold-dim); font-size:13px; text-align:center; padding:1.5rem 0;">
+        Buscando dados do servidor…</p>`;
+
+    try {
+        const data = await fetchMarketPrice(itemName, period);
+
+        if (!data.success || !data.priceList?.length) {
+            area.innerHTML = `<p style="color:var(--parchment-dim); font-size:13px; text-align:center; padding:1.5rem 0;">
+                Nenhum dado do servidor para <strong style="color:var(--parchment)">${itemName}</strong>.</p>`;
+            return;
+        }
+
+        // Normalize server data to same shape as local history
+        const history = data.priceList.map(x => ({
+            date:  x.date ?? x.referenceDate ?? new Date().toISOString(),
+            price: Number(x.avgPrice ?? x.price ?? 0),
+        })).filter(h => h.price > 0);
+
+        _drawChart(area, history, itemName);
+
+    } catch (err) {
+        area.innerHTML = `<p style="color:var(--red); font-size:13px; text-align:center; padding:1.5rem 0;">
+            Erro ao buscar dados: ${err.message}</p>`;
+    }
 }
 
 function _removeModal() {
