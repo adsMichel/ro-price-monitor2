@@ -247,18 +247,56 @@ async function _renderChartFromServer(itemName, period) {
             return;
         }
 
-        // Normalize server fields to local history shape
-        // Server returns: minItemPrice, maxItemPrice, avgItemPrice, itemName, totalItemCnt
-        const history = data.priceList.map(x => ({
-            date:     x.date ?? x.referenceDate ?? new Date().toISOString(),
-            price:    Number(x.avgItemPrice ?? x.avgPrice ?? x.price ?? 0),
-            min:      Number(x.minItemPrice ?? 0),
-            max:      Number(x.maxItemPrice ?? 0),
-            itemName: x.itemName ?? itemName,
-            totalCnt: x.totalItemCnt ?? null,
-        })).filter(h => h.price > 0);
+        // Server returns one aggregated record per item (min/avg/max across all listings)
+        const x = data.priceList[0];
+        const fmt = v => Number(v).toLocaleString("pt-BR");
 
-        _drawChart(area, history, itemName);
+        area.innerHTML = `
+            <div style="display:flex; gap:12px; align-items:center; margin-bottom:1.25rem;">
+                <img src="${x.databaseImgPath}" width="48" height="48"
+                    style="image-rendering:pixelated; border-radius:var(--radius-sm);
+                    border:1px solid var(--border); background:var(--bg-deep);">
+                <div>
+                    <div style="font-family:var(--font-display); font-size:15px; color:var(--parchment);">
+                        ${x.itemName}
+                    </div>
+                    <div style="font-size:12px; color:var(--parchment-dim); margin-top:2px;">
+                        ${x.databaseType} &middot; ${fmt(x.totalItemCnt)} unidades no mercado
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:1rem;">
+                <div style="background:var(--bg-deep); border:1px solid var(--border);
+                    border-radius:var(--radius-md); padding:.85rem 1rem;">
+                    <div style="font-size:10px; letter-spacing:.12em; text-transform:uppercase;
+                        color:var(--parchment-dim); margin-bottom:4px;">Menor Preço</div>
+                    <div style="font-family:var(--font-display); font-size:16px; color:var(--green); font-weight:600;">
+                        ${fmt(x.minItemPrice)} z
+                    </div>
+                </div>
+                <div style="background:var(--bg-deep); border:1px solid var(--border);
+                    border-radius:var(--radius-md); padding:.85rem 1rem;">
+                    <div style="font-size:10px; letter-spacing:.12em; text-transform:uppercase;
+                        color:var(--parchment-dim); margin-bottom:4px;">Preço Médio</div>
+                    <div style="font-family:var(--font-display); font-size:16px; color:var(--gold-light); font-weight:600;">
+                        ${fmt(x.avgItemPrice)} z
+                    </div>
+                </div>
+                <div style="background:var(--bg-deep); border:1px solid var(--border);
+                    border-radius:var(--radius-md); padding:.85rem 1rem;">
+                    <div style="font-size:10px; letter-spacing:.12em; text-transform:uppercase;
+                        color:var(--parchment-dim); margin-bottom:4px;">Maior Preço</div>
+                    <div style="font-family:var(--font-display); font-size:16px; color:var(--red); font-weight:600;">
+                        ${fmt(x.maxItemPrice)} z
+                    </div>
+                </div>
+            </div>
+
+            <div style="font-size:11px; color:var(--parchment-dim); text-align:right; margin-top:.5rem;">
+                Período: <strong style="color:var(--parchment)">${period}</strong>
+                &middot; Fonte: Servidor FREYA
+            </div>`;
 
     } catch (err) {
         area.innerHTML = `<p style="color:var(--red); font-size:13px; text-align:center; padding:1.5rem 0;">
