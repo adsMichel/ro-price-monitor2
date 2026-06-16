@@ -68,11 +68,17 @@ function setMonitorState(state) {
     if (state === "loading") {
         btn.disabled = true;
         btn.style.opacity = "0.6";
+        btn.classList.remove("is-active");
         btn.innerHTML = `${iconSpin}<span class="btn-label">Monitorando…</span>`;
     } else {
         btn.disabled = false;
         btn.style.opacity = "";
-        btn.innerHTML = `${iconIdle}<span class="btn-label">Monitorar</span>`;
+        // Show active/idle state based on whether the interval is running
+        const isActive = !!window._roMonitorActive;
+        btn.classList.toggle("is-active", isActive);
+        btn.innerHTML = isActive
+            ? `<span class="monitor-dot"></span>${iconIdle}<span class="btn-label">Ativo</span>`
+            : `${iconIdle}<span class="btn-label">Monitorar</span>`;
     }
 }
 

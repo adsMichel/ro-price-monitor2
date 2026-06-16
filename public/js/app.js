@@ -196,6 +196,17 @@ function saveIntervalMinutes(minutes) {
 function startMonitorInterval(minutes) {
     if (_monitorTimer) clearInterval(_monitorTimer);
     _monitorTimer = setInterval(monitorFavorites, minutes * 60 * 1000);
+    window._roMonitorActive = true;
+    // Refresh button appearance to show active state
+    const btn = document.getElementById("monitorNowBtn");
+    if (btn && !btn.disabled) {
+        const iconIdle = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
+        </svg>`;
+        btn.classList.add("is-active");
+        btn.innerHTML = `<span class="monitor-dot"></span>${iconIdle}<span class="btn-label">Ativo</span>`;
+    }
 }
 
 function initIntervalSelector() {
