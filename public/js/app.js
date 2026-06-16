@@ -32,7 +32,7 @@ function formatZeny(value) {
 }
 
 btn.addEventListener("click", () => search());
-monitorBtn.addEventListener("click", monitorFavorites);
+// monitorBtn listener is defined in the interval manager below
 alertsBtn?.addEventListener("click",  () => openAlerts());
 historyBtn?.addEventListener("click", () => openHistory());
 trendingBtn?.addEventListener("click", () => openTrending());
@@ -181,9 +181,21 @@ function renderTable(stores) {
 const INTERVAL_OPTIONS = [5, 15, 30, 60]; // minutes
 let _monitorTimer = null;
 
+const ICON_IDLE = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
+</svg>`;
+
+// Returns true if there is at least one active alert with a threshold > 0
+function hasActiveAlerts() {
+    const settings = JSON.parse(localStorage.getItem("ro_settings") || "{}");
+    const alerts   = settings.alerts || {};
+    return Object.values(alerts).some(cfg => cfg.enabled && cfg.threshold > 0);
+}
+
 function getIntervalMinutes() {
     const settings = JSON.parse(localStorage.getItem("ro_settings") || "{}");
-    const saved = settings.monitorInterval;
+    const saved    = settings.monitorInterval;
     return INTERVAL_OPTIONS.includes(saved) ? saved : 30;
 }
 
@@ -193,20 +205,34 @@ function saveIntervalMinutes(minutes) {
     localStorage.setItem("ro_settings", JSON.stringify(settings));
 }
 
+// ── Button state ────────────────────────────────────────────
+// idle    → "Monitorar"   no glow, no dot
+// active  → "Monitorando" purple glow + pulsing dot
+export function refreshMonitorBtn() {
+    const btn = document.getElementById("monitorNowBtn");
+    if (!btn || btn.disabled) return;
+
+    if (hasActiveAlerts() && _monitorTimer) {
+        btn.classList.add("is-active");
+        btn.innerHTML = `<span class="monitor-dot"></span>${ICON_IDLE}<span class="btn-label">Monitorando</span>`;
+    } else {
+        btn.classList.remove("is-active");
+        btn.innerHTML = `${ICON_IDLE}<span class="btn-label">Monitorar</span>`;
+    }
+}
+
 function startMonitorInterval(minutes) {
     if (_monitorTimer) clearInterval(_monitorTimer);
     _monitorTimer = setInterval(monitorFavorites, minutes * 60 * 1000);
     window._roMonitorActive = true;
-    // Refresh button appearance to show active state
-    const btn = document.getElementById("monitorNowBtn");
-    if (btn && !btn.disabled) {
-        const iconIdle = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
-        </svg>`;
-        btn.classList.add("is-active");
-        btn.innerHTML = `<span class="monitor-dot"></span>${iconIdle}<span class="btn-label">Ativo</span>`;
-    }
+    refreshMonitorBtn();
+}
+
+function stopMonitorInterval() {
+    if (_monitorTimer) clearInterval(_monitorTimer);
+    _monitorTimer = null;
+    window._roMonitorActive = false;
+    refreshMonitorBtn();
 }
 
 function initIntervalSelector() {
@@ -214,8 +240,6 @@ function initIntervalSelector() {
 
     document.querySelectorAll(".interval-btn").forEach(btn => {
         const minutes = Number(btn.dataset.minutes);
-
-        // Reflect saved preference on load
         btn.classList.toggle("active", minutes === current);
 
         btn.addEventListener("click", () => {
@@ -227,8 +251,53 @@ function initIntervalSelector() {
         });
     });
 
-    startMonitorInterval(current);
+    // Only start the interval if there are active alerts configured
+    if (hasActiveAlerts()) {
+        startMonitorInterval(current);
+    } else {
+        refreshMonitorBtn();
+    }
 }
+
+// ── Monitor button click handler ────────────────────────────
+// • No active alerts  → show toast, do nothing
+// • Active alerts + timer running → STOP monitoring
+// • Active alerts + timer stopped → START monitoring + run a cycle now
+monitorBtn.addEventListener("click", async () => {
+    if (!hasActiveAlerts()) {
+        _showToast("Configure um alerta de preço ativo antes de monitorar.");
+        return;
+    }
+
+    if (_monitorTimer) {
+        // Currently monitoring → stop
+        stopMonitorInterval();
+    } else {
+        // Not monitoring → start interval and run one cycle immediately
+        startMonitorInterval(getIntervalMinutes());
+        await monitorFavorites();
+        refreshMonitorBtn();
+    }
+});
+
+function _showToast(message) {
+    const existing = document.getElementById("ro-app-toast");
+    existing?.remove();
+    const toast = document.createElement("div");
+    toast.id = "ro-app-toast";
+    toast.textContent = message;
+    toast.style.cssText = `
+        position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%);
+        background:var(--bg-raised); border:1px solid var(--border);
+        color:var(--parchment); font-family:var(--font-ui); font-size:13px;
+        padding:.6rem 1.25rem; border-radius:var(--radius-md);
+        z-index:2000; white-space:nowrap; opacity:1; transition:opacity .4s;`;
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.style.opacity = "0"; setTimeout(() => toast.remove(), 400); }, 3000);
+}
+
+// Expose refreshMonitorBtn globally so monitor.js can call it after a cycle
+window.refreshMonitorBtn = refreshMonitorBtn;
 
 // ─── Init ──────────────────────────────────────────────────
 
