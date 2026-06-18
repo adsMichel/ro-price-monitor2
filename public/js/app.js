@@ -176,9 +176,8 @@ function renderTable(stores) {
     `;
 }
 
-// ─── Interval manager ──────────────────────────────────────
+// ─── Monitor manager ───────────────────────────────────────
 
-const INTERVAL_OPTIONS = [5, 15, 30, 60]; // minutes
 let _monitorTimer = null;
 
 const ICON_IDLE = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -186,98 +185,134 @@ const ICON_IDLE = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" s
     <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
 </svg>`;
 
-// Returns true if there is at least one active alert with a threshold > 0
+const ICON_STOP = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <rect x="3" y="3" width="18" height="18" rx="2"/>
+</svg>`;
+
 function hasActiveAlerts() {
     const settings = JSON.parse(localStorage.getItem("ro_settings") || "{}");
     const alerts   = settings.alerts || {};
     return Object.values(alerts).some(cfg => cfg.enabled && cfg.threshold > 0);
 }
 
-function getIntervalMinutes() {
-    const settings = JSON.parse(localStorage.getItem("ro_settings") || "{}");
-    const saved    = settings.monitorInterval;
-    return INTERVAL_OPTIONS.includes(saved) ? saved : 30;
-}
-
-function saveIntervalMinutes(minutes) {
-    const settings = JSON.parse(localStorage.getItem("ro_settings") || "{}");
-    settings.monitorInterval = minutes;
-    localStorage.setItem("ro_settings", JSON.stringify(settings));
-}
-
-// ── Button state ────────────────────────────────────────────
-// idle    → "Monitorar"   no glow, no dot
-// active  → "Monitorando" purple glow + pulsing dot
+// ── Button states ────────────────────────────────────────────
 export function refreshMonitorBtn() {
     const btn = document.getElementById("monitorNowBtn");
     if (!btn || btn.disabled) return;
 
-    if (hasActiveAlerts() && _monitorTimer) {
+    if (_monitorTimer) {
         btn.classList.add("is-active");
-        btn.innerHTML = `<span class="monitor-dot"></span>${ICON_IDLE}<span class="btn-label">Monitorando</span>`;
+        btn.innerHTML = `<span class="monitor-dot"></span>${ICON_STOP}<span class="btn-label">Parar</span>`;
     } else {
         btn.classList.remove("is-active");
         btn.innerHTML = `${ICON_IDLE}<span class="btn-label">Monitorar</span>`;
     }
 }
 
-function startMonitorInterval(minutes) {
+function startMonitor(minutes) {
     if (_monitorTimer) clearInterval(_monitorTimer);
     _monitorTimer = setInterval(monitorFavorites, minutes * 60 * 1000);
     window._roMonitorActive = true;
     refreshMonitorBtn();
 }
 
-function stopMonitorInterval() {
+function stopMonitor() {
     if (_monitorTimer) clearInterval(_monitorTimer);
     _monitorTimer = null;
     window._roMonitorActive = false;
     refreshMonitorBtn();
 }
 
-function initIntervalSelector() {
-    const current = getIntervalMinutes();
+// ── Interval picker modal ─────────────────────────────────────
+function openIntervalPicker() {
+    const existing = document.getElementById("ro-interval-overlay");
+    if (existing) { existing.remove(); return; }
 
-    document.querySelectorAll(".interval-btn").forEach(btn => {
-        const minutes = Number(btn.dataset.minutes);
-        btn.classList.toggle("active", minutes === current);
+    const overlay = document.createElement("div");
+    overlay.id = "ro-interval-overlay";
+    overlay.style.cssText = `
+        position:fixed; inset:0; z-index:1000;
+        background:rgba(10,7,20,0.8);
+        display:flex; align-items:center; justify-content:center; padding:1rem;`;
 
-        btn.addEventListener("click", () => {
-            document.querySelectorAll(".interval-btn")
-                .forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-            saveIntervalMinutes(minutes);
-            startMonitorInterval(minutes);
+    overlay.innerHTML = `
+        <div style="
+            background:var(--bg-card); border:1px solid var(--border);
+            border-radius:var(--radius-lg); width:100%; max-width:360px; padding:1.5rem;">
+
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.25rem;">
+                <span style="font-family:var(--font-display); font-size:14px; letter-spacing:.1em;
+                    text-transform:uppercase; color:var(--parchment);">
+                    Iniciar Monitoramento
+                </span>
+                <button id="ro-interval-close" style="background:none; border:none; cursor:pointer;
+                    color:var(--parchment-dim); font-size:20px; padding:4px 8px;">✕</button>
+            </div>
+
+            <p style="font-size:13px; color:var(--parchment-dim); margin-bottom:1.25rem; line-height:1.5;">
+                Escolha o intervalo de verificação de preços:
+            </p>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:1.25rem;">
+                ${[
+                    { label: "5 minutos",  value: 5  },
+                    { label: "15 minutos", value: 15 },
+                    { label: "30 minutos", value: 30 },
+                    { label: "1 hora",     value: 60 },
+                ].map(opt => `
+                    <button class="ro-interval-opt" data-minutes="${opt.value}" style="
+                        background:var(--bg-raised); border:1px solid var(--border);
+                        border-radius:var(--radius-md); color:var(--parchment-dim);
+                        font-family:var(--font-ui); font-size:14px; font-weight:500;
+                        padding:.75rem 1rem; cursor:pointer; text-align:center;
+                        transition:all .15s;">
+                        ${opt.label}
+                    </button>`).join("")}
+            </div>
+        </div>`;
+
+    document.body.appendChild(overlay);
+
+    overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
+    document.getElementById("ro-interval-close").addEventListener("click", () => overlay.remove());
+
+    overlay.querySelectorAll(".ro-interval-opt").forEach(btn => {
+        btn.addEventListener("mouseenter", () => {
+            btn.style.borderColor = "var(--purple-light)";
+            btn.style.color       = "var(--parchment)";
+            btn.style.background  = "var(--purple-dim)";
+        });
+        btn.addEventListener("mouseleave", () => {
+            btn.style.borderColor = "var(--border)";
+            btn.style.color       = "var(--parchment-dim)";
+            btn.style.background  = "var(--bg-raised)";
+        });
+        btn.addEventListener("click", async () => {
+            const minutes = Number(btn.dataset.minutes);
+            overlay.remove();
+            startMonitor(minutes);
+            await monitorFavorites();
+            refreshMonitorBtn();
         });
     });
-
-    // Only start the interval if there are active alerts configured
-    if (hasActiveAlerts()) {
-        startMonitorInterval(current);
-    } else {
-        refreshMonitorBtn();
-    }
 }
 
-// ── Monitor button click handler ────────────────────────────
-// • No active alerts  → show toast, do nothing
-// • Active alerts + timer running → STOP monitoring
-// • Active alerts + timer stopped → START monitoring + run a cycle now
-monitorBtn.addEventListener("click", async () => {
+// ── Monitor button click ──────────────────────────────────────
+monitorBtn.addEventListener("click", () => {
+    if (_monitorTimer) {
+        // Currently monitoring → stop
+        stopMonitor();
+        return;
+    }
+
     if (!hasActiveAlerts()) {
         _showToast("Configure um alerta de preço ativo antes de monitorar.");
         return;
     }
 
-    if (_monitorTimer) {
-        // Currently monitoring → stop
-        stopMonitorInterval();
-    } else {
-        // Not monitoring → start interval and run one cycle immediately
-        startMonitorInterval(getIntervalMinutes());
-        await monitorFavorites();
-        refreshMonitorBtn();
-    }
+    // Not monitoring + has alerts → open interval picker
+    openIntervalPicker();
 });
 
 function _showToast(message) {
@@ -296,11 +331,11 @@ function _showToast(message) {
     setTimeout(() => { toast.style.opacity = "0"; setTimeout(() => toast.remove(), 400); }, 3000);
 }
 
-// Expose refreshMonitorBtn globally so monitor.js can call it after a cycle
+// Expose so monitor.js can refresh the button after each cycle
 window.refreshMonitorBtn = refreshMonitorBtn;
 
 // ─── Init ──────────────────────────────────────────────────
 
 renderFavorites(search);
 renderRecents(search);
-initIntervalSelector();
+refreshMonitorBtn();

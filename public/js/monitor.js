@@ -19,10 +19,13 @@ export async function monitorFavorites() {
 
             const previous = history[item]?.at(-1);
 
-            if (previous && data.stats.min < previous.price) {
-                notifyPriceDrop(item, previous.price, data.stats.min);
-            } else if (shouldAlert(item, data.stats.min)) {
+            // ── Check 1: threshold alert (independent, fires whenever price <= limit)
+            if (shouldAlert(item, data.stats.min)) {
                 notifyPriceDrop(item, previous?.price ?? data.stats.min, data.stats.min);
+            }
+            // ── Check 2: historical drop (fires only if price fell since last check)
+            else if (previous && data.stats.min < previous.price) {
+                notifyPriceDrop(item, previous.price, data.stats.min);
             }
 
             saveHistory(item, data.stats.min);
@@ -69,16 +72,14 @@ function setMonitorState(state) {
         btn.disabled = true;
         btn.style.opacity = "0.6";
         btn.classList.remove("is-active");
-        btn.innerHTML = `${iconSpin}<span class="btn-label">Monitorando…</span>`;
+        btn.innerHTML = `${iconSpin}<span class="btn-label">Verificando…</span>`;
     } else {
         btn.disabled = false;
         btn.style.opacity = "";
-        // Show active/idle state based on whether the interval is running
-        const isActive = !!window._roMonitorActive;
-        btn.classList.toggle("is-active", isActive);
-        btn.innerHTML = isActive
-            ? `<span class="monitor-dot"></span>${iconIdle}<span class="btn-label">Ativo</span>`
-            : `${iconIdle}<span class="btn-label">Monitorar</span>`;
+        // Delegate final appearance to app.js which knows about alert state
+        if (typeof window.refreshMonitorBtn === "function") {
+            window.refreshMonitorBtn();
+        }
     }
 }
 
