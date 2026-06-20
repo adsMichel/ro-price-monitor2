@@ -39,10 +39,15 @@ export function getRecents() {
 
 // ─── Triggered alerts (separate from manual recents) ────────
 
-export function saveTriggered(itemName) {
+export function saveTriggered(itemName, price) {
     let triggered = JSON.parse(localStorage.getItem(TRIGGERED_KEY) || "[]");
-    triggered = triggered.filter(x => x !== itemName);
-    triggered.unshift(itemName);
+    // Remove existing entry for this item before adding updated one
+    triggered = triggered.filter(x => x.name !== itemName);
+    triggered.unshift({
+        name:  itemName,
+        price: price,
+        time:  new Date().toISOString(),
+    });
     triggered = triggered.slice(0, 20);
     localStorage.setItem(TRIGGERED_KEY, JSON.stringify(triggered));
 }

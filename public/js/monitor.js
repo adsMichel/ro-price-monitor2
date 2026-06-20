@@ -42,7 +42,7 @@ export async function monitorFavorites() {
             if (shouldAlert(item, data.stats.min)) {
                 notifyPriceDrop(item, previous?.price ?? data.stats.min, data.stats.min);
                 // Add to triggered list so it appears in Últimas Atualizações
-                saveTriggered(item);
+                saveTriggered(item, data.stats.min);
                 renderRecents(_searchFn);
             }
             // ── Check 2: historical drop (fires only if price fell since last check)
