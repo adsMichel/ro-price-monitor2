@@ -8,7 +8,7 @@ import {
 
 import { renderFavorites } from "./favorites.js";
 import { renderRecents }   from "./dashboard.js";
-import { monitorFavorites } from "./monitor.js";
+import { monitorFavorites, setSearchFn } from "./monitor.js";
 import { openHistory }      from "./history.js";
 import { openAlerts }       from "./alerts.js";
 import { openTrending }     from "./trending.js";
@@ -333,6 +333,9 @@ function _showToast(message) {
 
 // Expose so monitor.js can refresh the button after each cycle
 window.refreshMonitorBtn = refreshMonitorBtn;
+
+// Give monitor.js access to the search function for re-rendering recents
+setSearchFn(search);
 
 // ─── Init ──────────────────────────────────────────────────
 
