@@ -3,9 +3,23 @@ import { searchItem } from "./api.js";
 import { shouldAlert } from "./alerts.js";
 
 export async function monitorFavorites() {
-    const favorites = getFavorites();
+    const allFavorites = getFavorites();
 
-    console.log(`[MONITOR] Verificando ${favorites.length} itens`);
+    // Only monitor items that have an active alert with a threshold > 0
+    const settings = JSON.parse(localStorage.getItem("ro_settings") || "{}");
+    const alerts   = settings.alerts || {};
+    const favorites = allFavorites.filter(item =>
+        alerts[item]?.enabled && alerts[item]?.threshold > 0
+    );
+
+    if (!favorites.length) {
+        console.log("[MONITOR] Nenhum item com alerta ativo para verificar");
+        setMonitorState("done");
+        updateLastChecked();
+        return;
+    }
+
+    console.log(`[MONITOR] Verificando ${favorites.length} de ${allFavorites.length} favoritos com alerta ativo`);
 
     setMonitorState("loading");
 
