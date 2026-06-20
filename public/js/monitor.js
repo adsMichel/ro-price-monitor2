@@ -1,4 +1,4 @@
-import { getFavorites, saveHistory, saveRecent } from "./storage.js";
+import { getFavorites, saveHistory, saveTriggered } from "./storage.js";
 import { searchItem } from "./api.js";
 import { shouldAlert } from "./alerts.js";
 import { renderRecents } from "./dashboard.js";
@@ -41,8 +41,8 @@ export async function monitorFavorites() {
             // ── Check 1: threshold alert (independent, fires whenever price <= limit)
             if (shouldAlert(item, data.stats.min)) {
                 notifyPriceDrop(item, previous?.price ?? data.stats.min, data.stats.min);
-                // Add to recents so the user can see the result immediately
-                saveRecent(item);
+                // Add to triggered list so it appears in Últimas Atualizações
+                saveTriggered(item);
                 renderRecents(_searchFn);
             }
             // ── Check 2: historical drop (fires only if price fell since last check)
