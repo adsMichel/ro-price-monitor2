@@ -81,29 +81,34 @@ function _renderModal(favorites) {
 }
 
 // ─── Thousand-separator mask ─────────────────────────────────
-
-function _applyMask(input) {
-    // Strip everything except digits
-    const raw = input.value.replace(/\D/g, "");
-    const num = raw ? Number(raw) : "";
-    input.value = num !== "" ? num.toLocaleString("pt-BR") : "";
-    // Store raw number in dataset for easy reading on save
-    input.dataset.raw = raw;
-}
+// Strategy: keep raw digits while the user is typing (no cursor jump),
+// format with separators only when the field loses focus.
 
 function _attachMaskListeners() {
     document.querySelectorAll(".ro-alert-threshold").forEach(input => {
-        // Set initial raw value from displayed text
+        // Initialise dataset.raw from the already-formatted value
         input.dataset.raw = input.value.replace(/\D/g, "");
 
-        input.addEventListener("input", () => _applyMask(input));
+        // While typing: strip non-digits, store raw, show raw — no reformatting = no cursor jump
+        input.addEventListener("input", () => {
+            const before = input.selectionStart;
+            const raw    = input.value.replace(/\D/g, "");
+            const removed = input.value.length - raw.length;
+            input.dataset.raw = raw;
+            if (removed > 0) {
+                // Rewrite only if non-digit chars were stripped, preserve cursor
+                input.value = raw;
+                const pos = Math.max(0, before - removed);
+                input.setSelectionRange(pos, pos);
+            }
+        });
 
-        // On focus: show raw number for easier editing
+        // On focus: show raw digits for easy editing
         input.addEventListener("focus", () => {
             input.value = input.dataset.raw || "";
         });
 
-        // On blur: reformat
+        // On blur: format with thousand separators
         input.addEventListener("blur", () => {
             const num = Number(input.dataset.raw) || "";
             input.value = num !== "" ? num.toLocaleString("pt-BR") : "";
