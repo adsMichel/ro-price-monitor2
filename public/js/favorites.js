@@ -1,7 +1,8 @@
-import { getFavorites, removeFavorite } from "./storage.js";
-import { renderFavoritesChips } from "./chips.js";
+import { getFavorites } from "./storage.js";
 
 export function renderFavorites(searchFn) {
-    const favorites = getFavorites();
-    renderFavoritesChips(favorites, searchFn);
+    // Delegate to sidebar renderer registered in app.js
+    if (typeof window._renderSidebarFavorites === "function") {
+        window._renderSidebarFavorites(searchFn);
+    }
 }

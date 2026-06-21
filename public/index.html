@@ -6,365 +6,421 @@
   <title>RO Price Monitor</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/app.css">
   <style>
-    /* ── Tokens ─────────────────────────────────────────── */
+    /* ── Design tokens ──────────────────────────────────── */
     :root {
-      --bg-deep:      #0E0B1A;
-      --bg-card:      #16112A;
-      --bg-raised:    #1F1838;
-      --border:       rgba(200,150,12,0.25);
-      --border-hover: rgba(200,150,12,0.55);
-      --gold:         #C8960C;
-      --gold-light:   #F0C040;
-      --gold-dim:     #7A5A08;
-      --purple:       #8B2FC9;
-      --purple-light: #B06AE0;
-      --purple-dim:   #3B1256;
-      --ice:          #4A9EDE;
-      --parchment:    #E8D5A3;
-      --parchment-dim:#9A8B6A;
-      --text:         #E8D5A3;
-      --text-muted:   #9A8B6A;
-      --red:          #C84040;
-      --green:        #3AAA60;
-      --radius-sm:    6px;
-      --radius-md:    10px;
-      --radius-lg:    16px;
+      /* Backgrounds */
+      --bg-app:      #0B0D11;
+      --bg-sidebar:  #131722;
+      --bg-topbar:   #131722;
+      --bg-card:     #161B27;
+      --bg-raised:   #1E2436;
+      --bg-input:    #0F1219;
+
+      /* Borders */
+      --border:      #2A2E39;
+      --border-dim:  #1E2230;
+
+      /* RO accent palette */
+      --gold:        #C8960C;
+      --gold-light:  #F0C040;
+      --gold-dim:    rgba(200,150,12,0.18);
+      --purple:      #8B2FC9;
+      --purple-light:#B06AE0;
+      --purple-dim:  rgba(139,47,201,0.18);
+
+      /* Price colors (TradingView-style) */
+      --bull:        #26A69A;  /* teal green */
+      --bull-bg:     rgba(38,166,154,0.12);
+      --bear:        #EF5350;  /* red */
+      --bear-bg:     rgba(239,83,80,0.12);
+      --neutral:     #787B86;
+
+      /* Text */
+      --text:        #D1D4DC;
+      --text-muted:  #787B86;
+      --text-dim:    #4C525E;
+
+      /* Misc */
+      --radius-sm:   4px;
+      --radius-md:   6px;
+      --radius-lg:   10px;
+      --sidebar-w:   248px;
+      --topbar-h:    52px;
+
+      /* Fonts */
       --font-display: 'Cinzel', serif;
       --font-ui:      'Inter', sans-serif;
+      --font-mono:    'JetBrains Mono', monospace;
     }
 
     /* ── Reset ──────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
 
     body {
-      background: var(--bg-deep);
+      background: var(--bg-app);
       color: var(--text);
       font-family: var(--font-ui);
-      font-size: 15px;
-      line-height: 1.6;
-      min-height: 100vh;
-      background-image:
-        radial-gradient(ellipse 80% 40% at 50% 0%, rgba(139,47,201,0.12) 0%, transparent 65%),
-        radial-gradient(ellipse 60% 30% at 80% 100%, rgba(200,150,12,0.08) 0%, transparent 60%);
-    }
-
-    /* ── Layout ─────────────────────────────────────────── */
-    .container {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 2rem 1.5rem 4rem;
-    }
-
-    /* ── Header ─────────────────────────────────────────── */
-    .header {
-      text-align: center;
-      padding: 2.5rem 0 2rem;
-      position: relative;
-    }
-
-    .header::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 50%;
-      transform: translateX(-50%);
-      width: 320px; height: 2px;
-      background: linear-gradient(90deg, transparent, var(--gold), transparent);
-    }
-
-    .header-emblem {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 56px; height: 56px;
-      border-radius: 50%;
-      border: 1.5px solid var(--gold-dim);
-      background: var(--bg-raised);
-      margin-bottom: 1rem;
-    }
-
-    .header-emblem svg {
-      width: 28px; height: 28px;
-      fill: var(--gold);
-    }
-
-    .header h1 {
-      font-family: var(--font-display);
-      font-size: clamp(1.4rem, 5vw, 2.4rem);
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      color: var(--gold-light);
-      text-shadow: 0 0 40px rgba(200,150,12,0.3);
-      line-height: 1.2;
-    }
-
-    .header-subtitle {
-      margin-top: 0.4rem;
-      font-size: clamp(10px, 2.5vw, 13px);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--parchment-dim);
-    }
-
-    /* ── Divider ─────────────────────────────────────────── */
-    .divider {
+      font-size: 13px;
       display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 1.5rem 0;
-      color: var(--gold-dim);
-      font-size: 10px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-    }
-    .divider::before, .divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
+      flex-direction: column;
     }
 
-    /* ── Search Section ──────────────────────────────────── */
-    .search-section {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 1.25rem;
-      margin-bottom: 1.25rem;
-    }
-
-    .search-label {
-      font-family: var(--font-display);
-      font-size: 11px;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--gold-dim);
-      margin-bottom: 0.75rem;
-      display: block;
-    }
-
-    .search-row {
-      display: flex;
-      gap: 8px;
-    }
-
-    .search-row input {
-      flex: 1;
-      min-width: 0; /* prevent overflow */
-      background: var(--bg-deep);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      color: var(--text);
-      font-family: var(--font-ui);
-      font-size: 15px;
-      padding: 0.65rem 1rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .search-row input::placeholder { color: var(--parchment-dim); }
-    .search-row input:focus { border-color: var(--gold); }
-
-    /* ── Buttons ─────────────────────────────────────────── */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 0.65rem 1.25rem;
-      border-radius: var(--radius-md);
-      font-family: var(--font-ui);
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      border: none;
-      transition: opacity 0.15s, transform 0.1s;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-    .btn:active { transform: scale(0.97); }
-
-    /* Label hidden on small screens, icon always visible */
-    .btn .btn-label { display: inline; }
-
-    .btn-primary {
-      background: var(--gold);
-      color: #1A0A06;
-    }
-    .btn-primary:hover { opacity: 0.88; }
-
-    .btn-secondary {
-      background: var(--bg-raised);
-      color: var(--parchment);
-      border: 1px solid var(--border);
-    }
-    .btn-secondary:hover { border-color: var(--border-hover); }
-
-    .btn-monitor {
-      background: var(--purple-dim);
-      color: var(--purple-light);
-      border: 1px solid rgba(139,47,201,0.4);
-      transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
-    }
-    .btn-monitor:hover { border-color: var(--purple-light); }
-
-    .btn-monitor.is-active {
-      background: rgba(139,47,201,0.35);
-      border-color: var(--purple-light);
-      box-shadow: 0 0 10px rgba(139,47,201,0.4);
-    }
-
-    /* Pulse dot shown when monitor is active */
-    .monitor-dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: var(--purple-light);
-      flex-shrink: 0;
-      animation: ro-pulse 1.6s ease-in-out infinite;
-    }
-    @keyframes ro-pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%       { opacity: 0.4; transform: scale(0.7); }
-    }
-
-    /* Chip remove button */
-    .chip-remove {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 14px; height: 14px;
-      border-radius: 50%;
-      border: none;
-      background: rgba(200,150,12,0.15);
-      color: var(--parchment-dim);
-      font-size: 10px;
-      line-height: 1;
-      cursor: pointer;
-      margin-left: 2px;
-      padding: 0;
-      transition: background 0.15s, color 0.15s;
-      flex-shrink: 0;
-    }
-    .chip-remove:hover {
-      background: rgba(200,64,64,0.25);
-      color: var(--red);
-    }
-
-    /* ── Monitor Actions ─────────────────────────────────── */
-    .monitor-actions {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 1.5rem;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-
-
-    /* ── Section Panels ──────────────────────────────────── */
-    .panel {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      margin-bottom: 1.25rem;
-      overflow: hidden;
-    }
-
-    .panel-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 0.85rem 1.25rem;
+    /* ── Top bar ─────────────────────────────────────────── */
+    .topbar {
+      height: var(--topbar-h);
+      background: var(--bg-topbar);
       border-bottom: 1px solid var(--border);
-      background: var(--bg-raised);
-      flex-wrap: wrap;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 12px;
+      flex-shrink: 0;
+      z-index: 10;
     }
 
-    .panel-icon {
+    .topbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-right: 8px;
+    }
+
+    .topbar-logo-icon {
       width: 28px; height: 28px;
-      border-radius: var(--radius-sm);
+      border-radius: 50%;
+      background: var(--gold-dim);
+      border: 1px solid rgba(200,150,12,0.35);
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
-    .panel-icon.gold   { background: rgba(200,150,12,0.15); color: var(--gold); }
-    .panel-icon.purple { background: rgba(139,47,201,0.15); color: var(--purple-light); }
-    .panel-icon.ice    { background: rgba(74,158,222,0.15);  color: var(--ice); }
 
-    .panel-title {
+    .topbar-logo-icon svg { fill: var(--gold); width: 14px; height: 14px; }
+
+    .topbar-title {
       font-family: var(--font-display);
       font-size: 13px;
-      letter-spacing: 0.1em;
-      color: var(--parchment);
-      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--gold-light);
+      white-space: nowrap;
     }
 
-    .panel-body {
-      padding: 1rem 1.25rem;
+    .topbar-sep {
+      width: 1px;
+      height: 24px;
+      background: var(--border);
+      flex-shrink: 0;
     }
 
-    /* ── Chips ───────────────────────────────────────────── */
-    .chip-list {
+    /* Search in topbar */
+    .topbar-search {
       display: flex;
-      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 0 10px;
+      height: 32px;
+      flex: 1;
+      max-width: 360px;
+      transition: border-color 0.15s;
+    }
+    .topbar-search:focus-within { border-color: var(--gold); }
+    .topbar-search svg { color: var(--text-muted); flex-shrink: 0; }
+    .topbar-search input {
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: var(--font-ui);
+      font-size: 13px;
+      width: 100%;
+    }
+    .topbar-search input::placeholder { color: var(--text-dim); }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: auto;
+    }
+
+    /* ── App shell ───────────────────────────────────────── */
+    .app-shell {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ─────────────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 10px 12px 8px;
+      border-bottom: 1px solid var(--border-dim);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sidebar-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .sidebar-body {
+      flex: 1;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    .sidebar-body::-webkit-scrollbar { width: 4px; }
+    .sidebar-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* Monitored item card */
+    .monitor-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-dim);
+      cursor: pointer;
+      transition: background 0.12s;
+      position: relative;
+    }
+    .monitor-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 4px; bottom: 4px;
+      width: 2px;
+      border-radius: 0 2px 2px 0;
+      background: transparent;
+      transition: background 0.15s;
+    }
+    .monitor-card.trend-up::before   { background: var(--bull); }
+    .monitor-card.trend-down::before { background: var(--bear); }
+    .monitor-card.trend-flat::before { background: var(--neutral); }
+    .monitor-card:hover { background: var(--bg-raised); }
+
+    .monitor-card-img {
+      width: 32px; height: 32px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      image-rendering: pixelated;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-dim);
+      font-size: 10px;
+      overflow: hidden;
+    }
+    .monitor-card-img img { width: 32px; height: 32px; image-rendering: pixelated; }
+
+    .monitor-card-info { flex: 1; min-width: 0; }
+    .monitor-card-name {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.3;
+    }
+    .monitor-card-meta {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 2px;
+    }
+    .monitor-card-time {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .monitor-card-price {
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .monitor-card-value {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+    .monitor-card-value.up   { color: var(--bull); }
+    .monitor-card-value.down { color: var(--bear); }
+    .monitor-card-value.flat { color: var(--text-muted); }
+
+    .monitor-card-badge {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      margin-top: 2px;
+      color: var(--text-dim);
+    }
+
+    .sidebar-empty {
+      padding: 24px 16px;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    /* Sidebar sections */
+    .sidebar-section {
+      border-top: 1px solid var(--border);
+    }
+
+    .sidebar-section-header {
+      padding: 8px 12px 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Favorite chip in sidebar */
+    .fav-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border-dim);
+      transition: background 0.12s;
+    }
+    .fav-row:hover { background: var(--bg-raised); }
+    .fav-row-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .fav-row-dot.up   { background: var(--bull); }
+    .fav-row-dot.down { background: var(--bear); }
+    .fav-row-dot.flat { background: var(--neutral); }
+    .fav-row-name {
+      flex: 1;
+      font-size: 12px;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .fav-row-remove {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-dim);
+      font-size: 11px;
+      padding: 0 2px;
+      line-height: 1;
+      opacity: 0;
+      transition: opacity 0.12s, color 0.12s;
+    }
+    .fav-row:hover .fav-row-remove { opacity: 1; }
+    .fav-row-remove:hover { color: var(--bear); }
+
+    /* ── Main area ───────────────────────────────────────── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .main-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    .main-body::-webkit-scrollbar { width: 6px; }
+    .main-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── Stats bar ───────────────────────────────────────── */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
       gap: 8px;
     }
 
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: var(--bg-deep);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 4px 12px;
-      font-size: 13px;
-      color: var(--parchment-dim);
-      cursor: pointer;
-      transition: border-color 0.15s, color 0.15s;
-    }
-    .chip:hover { border-color: var(--gold-dim); color: var(--parchment); }
-    .chip .chip-dot { width: 6px; height: 6px; border-radius: 50%; }
-    .chip .chip-dot.up   { background: var(--green); }
-    .chip .chip-dot.down { background: var(--red); }
-    .chip .chip-dot.flat { background: var(--parchment-dim); }
-
-    /* ── Stats Grid ──────────────────────────────────────── */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 10px;
-    }
-
-    .stat-card {
-      background: var(--bg-deep);
+    .stat-tile {
+      background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
-      padding: 0.9rem 1rem;
+      padding: 10px 12px;
     }
 
-    .stat-label {
-      font-size: 11px;
-      letter-spacing: 0.12em;
+    .stat-tile-label {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: var(--parchment-dim);
+      color: var(--text-muted);
       margin-bottom: 4px;
     }
 
-    .stat-value {
-      font-family: var(--font-display);
-      font-size: 20px;
-      color: var(--gold-light);
+    .stat-tile-value {
+      font-family: var(--font-mono);
+      font-size: 16px;
       font-weight: 600;
-      word-break: break-all;
+      color: var(--text);
+      line-height: 1.2;
+    }
+    .stat-tile-value.bull  { color: var(--bull); }
+    .stat-tile-value.bear  { color: var(--bear); }
+    .stat-tile-value.gold  { color: var(--gold-light); }
+    .stat-tile-value.muted { color: var(--text-muted); font-size: 13px; }
+
+    /* ── Results panel ───────────────────────────────────── */
+    .results-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
     }
 
-    .stat-value.purple { color: var(--purple-light); }
-    .stat-value.ice    { color: var(--ice); }
-    .stat-value.green  { color: var(--green); }
+    .results-panel-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-raised);
+    }
 
-    /* ── Results Table ───────────────────────────────────── */
-    /* Wrapper enables horizontal scroll on narrow screens */
+    .results-panel-title {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .results-panel-body {
+      padding: 0;
+    }
+
+    /* ── Table ───────────────────────────────────────────── */
     .table-scroll {
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
@@ -372,276 +428,312 @@
 
     .results-table {
       width: 100%;
-      min-width: 480px; /* start scrolling below this */
+      min-width: 520px;
       border-collapse: collapse;
-      font-size: 14px;
+      font-size: 12px;
     }
 
     .results-table th {
-      font-family: var(--font-display);
       font-size: 10px;
-      letter-spacing: 0.12em;
+      font-weight: 600;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: var(--parchment-dim);
-      padding: 0.5rem 0.75rem;
+      color: var(--text-muted);
+      padding: 8px 12px;
       text-align: left;
       border-bottom: 1px solid var(--border);
       white-space: nowrap;
+      background: var(--bg-raised);
     }
 
     .results-table td {
-      padding: 0.6rem 0.75rem;
-      border-bottom: 1px solid rgba(200,150,12,0.08);
-      color: var(--parchment);
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border-dim);
+      color: var(--text);
     }
 
-    .results-table tr:last-child td { border-bottom: none; }
-    .results-table tr:hover td { background: rgba(200,150,12,0.04); }
+    .results-table tbody tr:last-child td { border-bottom: none; }
+    .results-table tbody tr:hover td { background: rgba(255,255,255,0.02); }
 
     .price-tag {
-      font-family: var(--font-display);
+      font-family: var(--font-mono);
       font-weight: 600;
       color: var(--gold-light);
       white-space: nowrap;
     }
+    .price-tag.best-price { color: var(--bull); }
 
-    .badge {
-      display: inline-block;
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-weight: 500;
-    }
-    .badge-up   { background: rgba(58,170,96,0.15);   color: var(--green); }
-    .badge-down { background: rgba(200,64,64,0.15);   color: var(--red); }
-    .badge-flat { background: rgba(154,139,106,0.15); color: var(--parchment-dim); }
-
-    /* ── Footer ──────────────────────────────────────────── */
-    .footer {
-      margin-top: 2.5rem;
-      text-align: center;
+    /* ── Buttons ─────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 0 12px;
+      height: 30px;
+      border-radius: var(--radius-md);
+      font-family: var(--font-ui);
       font-size: 12px;
-      color: var(--parchment-dim);
-      letter-spacing: 0.08em;
-      border-top: 1px solid var(--border);
-      padding-top: 1.5rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.12s;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
+    .btn:active { opacity: 0.8; transform: scale(0.98); }
+    .btn .btn-label { display: inline; }
+
+    .btn-primary {
+      background: var(--gold);
+      color: #0B0D11;
+      border-color: var(--gold);
+    }
+    .btn-primary:hover { background: var(--gold-light); border-color: var(--gold-light); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+      border-color: var(--border);
+    }
+    .btn-ghost:hover { color: var(--text); border-color: #4C525E; background: var(--bg-raised); }
+
+    .btn-monitor {
+      background: var(--purple-dim);
+      color: var(--purple-light);
+      border-color: rgba(139,47,201,0.4);
+      transition: all 0.15s;
+    }
+    .btn-monitor:hover { border-color: var(--purple-light); }
+    .btn-monitor.is-active {
+      background: rgba(139,47,201,0.28);
+      border-color: var(--purple-light);
+      box-shadow: 0 0 8px rgba(139,47,201,0.35);
+    }
+
+    /* Monitor dot */
+    .monitor-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--purple-light);
+      flex-shrink: 0;
+      animation: ro-pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes ro-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.35; transform: scale(0.65); }
+    }
+
+    /* Chip remove */
+    .chip-remove {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-dim);
+      font-size: 10px;
+      padding: 0 2px;
+      line-height: 1;
+      transition: color 0.12s;
+      flex-shrink: 0;
+    }
+    .chip-remove:hover { color: var(--bear); }
 
     /* ── Empty state ─────────────────────────────────────── */
     .empty-state {
-      padding: 1.5rem 1rem;
+      padding: 32px 16px;
       text-align: center;
-      color: var(--parchment-dim);
-      font-size: 13px;
+      color: var(--text-dim);
+      font-size: 12px;
+      line-height: 1.7;
     }
 
-    /* ════════════════════════════════════════════════════════
-       RESPONSIVE — ≤ 600px
-    ════════════════════════════════════════════════════════ */
-    @media (max-width: 600px) {
-      .container {
-        padding: 1.25rem 1rem 3rem;
+    /* ── Footer ──────────────────────────────────────────── */
+    .footer {
+      padding: 6px 16px;
+      border-top: 1px solid var(--border-dim);
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 0.06em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    /* ── Scrollbar chip-list compatibility ─────────────────  */
+    .chip-list { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--bg-raised); border: 1px solid var(--border);
+      border-radius: 999px; padding: 3px 10px;
+      font-size: 11px; color: var(--text-muted);
+      cursor: pointer; transition: border-color 0.12s, color 0.12s;
+    }
+    .chip:hover { border-color: var(--gold); color: var(--text); }
+    .chip .chip-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+    .chip .chip-dot.up   { background: var(--bull); }
+    .chip .chip-dot.down { background: var(--bear); }
+    .chip .chip-dot.flat { background: var(--neutral); }
+
+    /* ── Responsive ─────────────────────────────────────── */
+    @media (max-width: 768px) {
+      html, body { overflow: auto; }
+      .app-shell { flex-direction: column; overflow: visible; }
+      .sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        max-height: 240px;
       }
-
-      /* Header: tighten vertical spacing */
-      .header {
-        padding: 1.75rem 0 1.25rem;
-      }
-      .header-emblem {
-        width: 44px; height: 44px;
-        margin-bottom: 0.75rem;
-      }
-      .header-emblem svg { width: 22px; height: 22px; }
-
-      /* Hide subtitle on very small screens */
-      .header-subtitle { display: none; }
-
-      /* Search: stack on tiny screens */
-      .search-section { padding: 1rem; }
-
-      /* Action buttons: icon-only, show label via tooltip attr */
+      .main { overflow: visible; }
+      .main-body { overflow: visible; }
+      .stats-bar { grid-template-columns: 1fr 1fr; }
       .btn .btn-label { display: none; }
-      .btn {
-        padding: 0.6rem 0.75rem;
-      }
-
-      /* Monitor actions: two rows naturally via wrap,
-         interval selector takes full width on its own row */
-      .monitor-actions {
-        gap: 6px;
-      }
-
-
-      /* Panels */
-      .panel-body { padding: 0.75rem 1rem; }
-      .panel-header { padding: 0.7rem 1rem; }
-
-      /* Stats: 2 cols on mobile */
-      .stats-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-      .stat-value { font-size: 16px; }
-
-      /* Chips slightly smaller */
-      .chip { font-size: 12px; padding: 3px 10px; }
-
-      /* Table: handled by .table-scroll wrapper */
-      .results-table { font-size: 13px; }
-      .results-table th,
-      .results-table td { padding: 0.5rem 0.6rem; }
+      .btn { padding: 0 8px; }
+      .topbar-search { max-width: none; flex: 1; }
     }
 
-    /* ════════════════════════════════════════════════════════
-       RESPONSIVE — ≤ 380px (very small phones)
-    ════════════════════════════════════════════════════════ */
-    @media (max-width: 380px) {
-      .stats-grid { grid-template-columns: 1fr 1fr; }
-      .stat-value { font-size: 14px; }
-
+    @media (max-width: 480px) {
+      .stats-bar { grid-template-columns: 1fr 1fr; }
+      .stat-tile-value { font-size: 13px; }
     }
   </style>
 </head>
 <body>
 
-<div class="container">
-
-  <!-- Header -->
-  <header class="header">
-    <div class="header-emblem" aria-hidden="true">
+<!-- Top bar -->
+<header class="topbar">
+  <div class="topbar-logo">
+    <div class="topbar-logo-icon" aria-hidden="true">
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/>
         <text x="12" y="16.5" text-anchor="middle" font-size="11" font-family="serif" fill="currentColor" font-weight="bold">z</text>
       </svg>
     </div>
-    <h1>RO Price Monitor</h1>
-    <p class="header-subtitle">Prontera Market Watch &mdash; Mercado de Midgard</p>
-  </header>
+    <span class="topbar-title">RO Price Monitor</span>
+  </div>
+
+  <div class="topbar-sep"></div>
 
   <!-- Search -->
-  <section class="search-section">
-    <span class="search-label">Buscar Item</span>
-    <div class="search-row">
-      <input id="itemName" type="text" placeholder="Ex: Carta de Poring, Yggdrasil Berry…">
-      <button id="searchBtn" class="btn btn-primary" title="Pesquisar">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <span class="btn-label">Pesquisar</span>
-      </button>
-    </div>
-  </section>
+  <div class="topbar-search">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input id="itemName" type="text" placeholder="Buscar item… ex: Yggdrasil Berry">
+  </div>
 
-  <!-- Monitor Actions -->
-  <div class="monitor-actions">
-    <button id="monitorNowBtn" class="btn btn-monitor" title="Monitorar Agora">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+  <button id="searchBtn" class="btn btn-primary" title="Pesquisar">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <span class="btn-label">Pesquisar</span>
+  </button>
+
+  <div class="topbar-sep"></div>
+
+  <div class="topbar-actions">
+    <button id="monitorNowBtn" class="btn btn-monitor" title="Monitorar">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
       <span class="btn-label">Monitorar</span>
     </button>
 
-    <button class="btn btn-secondary" title="Alertas de Preço">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
-      <span class="btn-label">Alertas de Preço</span>
+    <button class="btn btn-ghost" title="Alertas de Preço">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+      <span class="btn-label">Alertas</span>
     </button>
 
-    <button class="btn btn-secondary" title="Histórico">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    <button class="btn btn-ghost" title="Histórico">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
       <span class="btn-label">Histórico</span>
     </button>
 
-    <button class="btn btn-secondary" title="Mais Vendidos">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+    <button class="btn btn-ghost" title="Mais Vendidos">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
       <span class="btn-label">Mais Vendidos</span>
     </button>
-
   </div>
+</header>
 
-  <!-- Stats -->
-  <div id="stats">
-    <div class="divider">Estatísticas</div>
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-icon ice" aria-hidden="true">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        </span>
-        <span class="panel-title">Visão Geral do Mercado</span>
+<!-- App shell -->
+<div class="app-shell">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <!-- Monitored items -->
+    <div class="sidebar-header">
+      <span class="sidebar-label">Monitorados</span>
+    </div>
+    <div class="sidebar-body" id="sidebar-monitored">
+      <div class="sidebar-empty">Nenhum alerta ativo.<br>Configure alertas para monitorar.</div>
+    </div>
+
+    <!-- Favorites -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-header">
+        <span class="sidebar-label">Favoritos</span>
       </div>
-      <div class="panel-body">
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-label">Itens Monitorados</div>
-            <div class="stat-value" id="stat-monitored">—</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Última Atualização</div>
-            <div class="stat-value ice" id="stat-updated" style="font-size:14px;">—</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Maior Alta</div>
-            <div class="stat-value green" id="stat-top-up">—</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Maior Queda</div>
-            <div class="stat-value purple" id="stat-top-down">—</div>
+      <div id="favorites-list" style="overflow-y:auto; max-height:220px;">
+        <div class="sidebar-empty" style="padding:12px 16px;">Nenhum favorito ainda.</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="main-body">
+
+      <!-- Stats bar -->
+      <div id="stats" class="stats-bar">
+        <div class="stat-tile">
+          <div class="stat-tile-label">Resultados</div>
+          <div class="stat-tile-value muted" id="stat-monitored">—</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-tile-label">Atualizado</div>
+          <div class="stat-tile-value muted" id="stat-updated">—</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-tile-label">Menor Preço</div>
+          <div class="stat-tile-value bull" id="stat-top-up">—</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-tile-label">Maior Preço</div>
+          <div class="stat-tile-value bear" id="stat-top-down">—</div>
+        </div>
+      </div>
+
+      <!-- Results panel -->
+      <div id="results" class="results-panel">
+        <div class="results-panel-header">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted)" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          <span class="results-panel-title">Resultados da Busca</span>
+        </div>
+        <div class="results-panel-body" id="results-body">
+          <p class="empty-state">Pesquise um item para ver os preços do mercado.</p>
+        </div>
+      </div>
+
+      <!-- Últimas Atualizações -->
+      <div id="recents" class="results-panel">
+        <div class="results-panel-header">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted)" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span class="results-panel-title">Últimas Atualizações</span>
+        </div>
+        <div class="results-panel-body">
+          <div id="recents-list" style="padding:4px 0;">
+            <p class="empty-state">Nenhuma atualização ainda. Inicie o monitoramento para acompanhar os preços.</p>
           </div>
         </div>
       </div>
+
     </div>
-  </div>
 
-  <!-- Favorites -->
-  <div id="favorites">
-    <div class="divider">Favoritos</div>
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-icon gold" aria-hidden="true">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-        </span>
-        <span class="panel-title">Favoritos</span>
-      </div>
-      <div class="panel-body">
-        <div class="chip-list" id="favorites-list">
-          <p class="empty-state">Nenhum favorito ainda. Pesquise um item e adicione aos favoritos.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Recents -->
-  <div id="recents">
-    <div class="divider">Últimas Atualizações</div>
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-icon purple" aria-hidden="true">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        </span>
-        <span class="panel-title">Últimas Atualizações</span>
-      </div>
-      <div class="panel-body">
-        <div class="chip-list" id="recents-list">
-          <p class="empty-state">Nenhuma atualização ainda. Inicie o monitoramento para acompanhar os preços.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Results -->
-  <div id="results">
-    <div class="divider">Resultados</div>
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-icon gold" aria-hidden="true">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-        </span>
-        <span class="panel-title">Resultados da Busca</span>
-      </div>
-      <div class="panel-body" id="results-body">
-        <p class="empty-state">Pesquise um item para ver os preços do mercado.</p>
-      </div>
-    </div>
-  </div>
-
-  <footer class="footer">
-    Ragnarok Online Price Monitor &middot; Dados do mercado de Midgard &middot; <span id="footer-year"></span>
-  </footer>
-
+    <!-- Footer -->
+    <footer class="footer">
+      <span>RO Price Monitor</span>
+      <span>·</span>
+      <span>Servidor FREYA</span>
+      <span>·</span>
+      <span id="footer-year"></span>
+    </footer>
+  </main>
 </div>
 
 <script>
